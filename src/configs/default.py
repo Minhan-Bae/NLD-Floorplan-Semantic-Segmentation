@@ -4,10 +4,12 @@ import torch
 from datetime import datetime
 
 # logging
+ROOT = "/root/workspace/nld_floorplan_seg"
+
 DATE = datetime.now().strftime("%Y-%m-%d")
 TIME = datetime.now().strftime("%H-%M")
 
-DEVICE = [str(i) for i in range(torch.cuda.device_count())]
+DEVICE = ','.join([str(i) for i in range(torch.cuda.device_count())])
 MODEL = ''
 
 EPOCH = 100
@@ -21,4 +23,7 @@ BATCH_SIZE = 64 * len(DEVICE) # number of gpu * 64(T4*2)
 WORKERS = 4 * len(DEVICE) # number of gpu * 4
 
 EARLY_STOP_CNT = 50
-VALID_STEP = 5
+VALID_TERM = 5
+
+IMG_SIZE = (284, 208)
+IMG_OFFSET = 10
