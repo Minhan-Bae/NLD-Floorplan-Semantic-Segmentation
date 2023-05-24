@@ -37,9 +37,6 @@
 │   ├── __init__.py
 │   ├── directory_structure.md
 │   ├── experiment_note.ipynb
-│   ├── list_files.py
 │   ├── main.py
-│   ├── main_long.py
-│   ├── my_script.py
     └── requirements.txt
 ```
