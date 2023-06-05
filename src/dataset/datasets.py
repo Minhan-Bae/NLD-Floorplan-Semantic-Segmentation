@@ -3,20 +3,17 @@ import json
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision import transforms
 from torchvision.transforms.functional import resize as resize_function
 
 class FloorplanDataset(Dataset):
-    def __init__(self, args, type='train'):
+    def __init__(self, args, type='train', transform=None):
         self.img_dir = args.img_dir
         self.img_size = args.image_size
+        self.type = type
         self.offset = args.image_offset
         with open(args.annotation_file) as file:
             self.data = json.load(file)
-        
-        self.transform = transforms.Compose([
-            transforms.ToTensor()  # 이미지를 Tensor로 변환합니다.
-        ])
+        self.transform = transform
 
     def __getitem__(self, idx):
         img_name = list(self.data.keys())[idx]
@@ -58,7 +55,8 @@ class FloorplanDataset(Dataset):
             annotation[key] = adjusted_coords
 
         img = resize_function(img, (self.img_size[1], self.img_size[0]))  # 이미지 크기를 조정합니다.
-        img = self.transform(img)
+        if self.transform:
+            img = self.transform(img)
 
         return img, annotation
 
