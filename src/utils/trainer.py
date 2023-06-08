@@ -2,14 +2,14 @@ import time
 from tqdm import tqdm
 
 import torch
-from average_meter import AverageMeter
+from .average_meter import AverageMeter
 
 import sys
-sys.append('..')
+sys.path.append('..')
 from ..models.loss import balanced_entropy as BE
 
 
-def train(train_loader, model, optimizer, epoch, lr, scaler):
+def train_one_epoch(train_loader, model, optimizer, epoch, lr, scaler):
     """Network training, loss updates, and backward calculation"""
 
     # AverageMeter for statistics
@@ -21,12 +21,12 @@ def train(train_loader, model, optimizer, epoch, lr, scaler):
 
     end = time.time()
     pbar = tqdm(enumerate(train_loader), total=len(train_loader))
-    for idx, (features, landmarks_gt) in pbar:
+    for idx, (features, labels) in pbar:
         features = features.cuda(non_blocking=True)
-        landmarks_gt = landmarks_gt.cuda(non_blocking=True)
+        labels = labels.cuda(non_blocking=True)
 
         predicts = model(features)
-        loss = BE.balanced_entropy(predicts, landmarks_gt)
+        loss = BE.balanced_entropy(predicts, labels)
 
         data_time.update(time.time() - end)
         scaler.scale(loss).backward()
@@ -55,7 +55,7 @@ def train(train_loader, model, optimizer, epoch, lr, scaler):
     return msg
     # logging.info(msg)
     
-def validate(valid_loader, model, save=None):
+def valid_one_epoch(valid_loader, model, save=None):
     cum_loss = 0.0
     cum_nme = 0.0
 
