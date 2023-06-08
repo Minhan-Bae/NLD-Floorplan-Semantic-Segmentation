@@ -5,8 +5,7 @@ import argparse
 
 # from str_to_bool import *
 
-sys.path.append('..')
-from configs import default as C
+from ..configs import default as C
 
 def parse_args(C):
     # Create an ArgumentParser object
