@@ -6,12 +6,17 @@ def get_augmentation(data_type):
         return A.Compose(
             [
                 A.Rotate(limit=90, border_mode=0, p=0.5),
+                A.HorizontalFlip(),
+                A.VerticalFlip(),
+                A.MedianBlur(),
+                A.Normalize(),
                 ToTensorV2(),
             ]
         )
     else:
         return A.Compose(
             [
-                ToTensorV2(),
+                A.Normalize,
+                ToTensorV2()
             ]
         )
