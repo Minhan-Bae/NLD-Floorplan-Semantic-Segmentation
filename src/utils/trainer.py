@@ -7,7 +7,8 @@ from .average_meter import AverageMeter
 import sys
 sys.path.append('..')
 from models.loss import balanced_entropy as BE
-
+from models.loss import losses as L
+from pytorch_toolbelt import losses as PL
 def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
     """Network training, loss updates, and backward calculation"""
 
@@ -18,20 +19,27 @@ def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
 
     model.train()
 
+    # criterion = L.FocalLoss()
+    # criterion = PL.balanced_binary_cross_entropy_with_logits()
+    
     end = time.time()
     pbar = tqdm(enumerate(train_loader), total=len(train_loader))
-
+    
     for idx, (features, labels) in pbar:
         features = features.cuda()
         labels = labels.cuda()
 
         predicts = model(features).cuda()
-        loss = BE.balanced_entropy(predicts, labels)
-
+        # predicts = predicts
+        
+        # loss = criterion(predicts, labels)
+        loss = PL.balanced_binary_cross_entropy_with_logits(predicts, labels)
         data_time.update(time.time() - end)
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        loss.backward()
+        optimizer.step()
+        # scaler.scale(loss).backward()
+        # scaler.step(optimizer)
+        # scaler.update()
 
         optimizer.zero_grad()
         flag, _ = optimizer.step_handleNan()

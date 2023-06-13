@@ -10,7 +10,7 @@ TIME = datetime.now().strftime("%H-%M")
 
 # environment parameter
 DEVICE = ','.join([str(i) for i in range(torch.cuda.device_count())])
-BATCH_SIZE = 4 * len(DEVICE) # number of gpu * 64(T4*2)
+BATCH_SIZE = 256 # number of gpu * 64(T4*2)
 WORKERS = 4 * len(DEVICE) # number of gpu * 4
 SEED = 2023
 EPOCH = 100
@@ -37,5 +37,5 @@ IMAGE_DIR = os.path.join(DATA_ROOT, "image")
 JSON_PATH = os.path.join(DATA_ROOT, "merged.json")
 
 # IMG_SIZE = (284, 208) # raw size(923* 676)
-IMG_SIZE = (512, 512)
+IMG_SIZE = (128, 128)
 IMG_OFFSET = 10 # default offset

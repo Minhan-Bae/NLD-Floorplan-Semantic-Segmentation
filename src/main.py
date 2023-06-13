@@ -7,6 +7,7 @@ import warnings
 import time
 import logging
 import torch
+import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -22,13 +23,13 @@ from utils import arg_parser, seed_utils, logger
 from utils import trainer as T
 from utils.early_stopping import EarlyStopping
 
-from models.loss import balanced_entropy, class_balanced_loss
-
+from models.loss import balanced_entropy, class_balanced_loss, losses
+from pytorch_toolbelt import losses as L
 gc.collect()
 warnings.filterwarnings("ignore")
 
 torch.backends.cudnn.enabled = False
-
+# cudnn.benchmark = True
 
 def main():
     # 초기 설정
