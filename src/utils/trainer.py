@@ -6,10 +6,9 @@ from .average_meter import AverageMeter
 
 import sys
 sys.path.append('..')
-from ..models.loss import balanced_entropy as BE
+from models.loss import balanced_entropy as BE
 
-
-def train_one_epoch(train_loader, model, optimizer, epoch, lr, scaler):
+def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
     """Network training, loss updates, and backward calculation"""
 
     # AverageMeter for statistics
@@ -21,11 +20,12 @@ def train_one_epoch(train_loader, model, optimizer, epoch, lr, scaler):
 
     end = time.time()
     pbar = tqdm(enumerate(train_loader), total=len(train_loader))
-    for idx, (features, labels) in pbar:
-        features = features.cuda(non_blocking=True)
-        labels = labels.cuda(non_blocking=True)
 
-        predicts = model(features)
+    for idx, (features, labels) in pbar:
+        features = features.cuda()
+        labels = labels.cuda()
+
+        predicts = model(features).cuda()
         loss = BE.balanced_entropy(predicts, labels)
 
         data_time.update(time.time() - end)
@@ -47,7 +47,7 @@ def train_one_epoch(train_loader, model, optimizer, epoch, lr, scaler):
 
     
     msg = (
-        "Epoch: {}\t".format(str(epoch).zfill(len(str(C.EPOCH))))
+        "Epoch: {}\t".format(str(epoch).zfill(len(str(args.epochs))))
         + "LR: {:.8f}\t".format(lr)
         + "Time: {:.3f} ({:.3f})\t".format(batch_time.val, batch_time.avg)
         + "Loss: {:.8f}\t".format(train_loss / len(train_loader))
