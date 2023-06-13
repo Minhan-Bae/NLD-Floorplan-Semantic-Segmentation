@@ -31,15 +31,3 @@ def get_logger(log_dir):
 
     return logger
 
-
-def test_logger():
-    log_dir = './logs'
-    logger = get_logger(log_dir)
-
-    logger.info('This is an info message')
-    logger.warning('This is a warning message')
-    logger.error('This is an error message')
-
-# 실행
-if __name__=='__main__':
-    test_logger()
