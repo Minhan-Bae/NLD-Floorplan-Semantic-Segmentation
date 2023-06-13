@@ -1,6 +1,7 @@
 ├── .git/
-├── data/
-├── logs/
+├── jupyter/
+│   ├── experiment_note.ipynb
+    └── playground.ipynb
 ├── src/
 │   ├── configs/
 │   │   ├── __init__.py
@@ -8,6 +9,7 @@
 │   ├── dataset/
 │   │   ├── __init__.py
 │   │   ├── augmentations.py
+│   │   ├── collate_fn.py
 │   │   ├── dataloader.py
 │       └── datasets.py
 │   ├── models/
@@ -16,19 +18,19 @@
 │   │   │   ├── balanced_entropy.py
 │   │       └── class_balanced_loss.py
 │   │   ├── __init__.py
+│   │   ├── dfp_net.py
 │   │   ├── metric.py
 │   │   ├── model_test.py
 │   │   ├── optimizer_manager.py
-│       └── segmentation_model.py
+│   │   ├── segmentation_model.py
+│       └── sgd_nan.py
 │   ├── utils/
 │   │   ├── __init__.py
-│   │   ├── adjust_lr.py # learning rate 조정
+│   │   ├── adjust_lr.py
 │   │   ├── arg_parser.py
 │   │   ├── average_meter.py
-│   │   ├── generate_init_files.py
-│   │   ├── generate_requirements_txt.py
+│   │   ├── early_stopping.py
 │   │   ├── logger.py
-│   │   ├── save_ckpt.py
 │   │   ├── seed_utils.py
 │   │   ├── sgd_nan_handler.py
 │   │   ├── str_to_bool.py
@@ -37,6 +39,6 @@
 │   ├── __init__.py
     └── main.py
 │   ├── README.md
+│   ├── __init__.py
 │   ├── directory_structure.md
-│   ├── experiment_note.ipynb
     └── requirements.txt
