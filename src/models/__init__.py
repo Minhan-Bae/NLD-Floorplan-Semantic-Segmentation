@@ -4,4 +4,5 @@ from . import metric
 from . import model_test
 from . import optimizer_manager
 from . import segmentation_model
+from . import sgd_nan
 from . import loss
