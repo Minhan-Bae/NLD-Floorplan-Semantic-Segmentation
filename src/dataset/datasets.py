@@ -7,9 +7,19 @@ from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms.functional import resize as resize_function
 
+class FloorPlanDataset(Dataset):
+    def __init__(self, args, type='train', transform=None):
+        self.image_dir = args.image_dir
+        self.label_dir = args.label_dir
+        
+        self.resize_factor = args.resize_factor
+        self
+
 class FloorplanDataset(Dataset):
     def __init__(self, args, type='train', transform=None):
         self.image_dir = args.image_dir
+        self.label_dir = args.label_dir
+        
         self.img_size = args.image_size
         self.type = type
         self.offset = args.image_offset
