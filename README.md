@@ -2,8 +2,7 @@
 
 ## Data structure
 ```python
-├── .git/
-├── data/
+├── logs/
 ├── src/
 │   ├── configs/
 │   │   ├── __init__.py
@@ -11,32 +10,42 @@
 │   ├── dataset/
 │   │   ├── __init__.py
 │   │   ├── augmentations.py
+│   │   ├── collate_fn.py
 │   │   ├── dataloader.py
 │       └── datasets.py
-│   ├── models/
-│   │   ├── loss/
+│   ├── loss/
 │   │   ├── __init__.py
+│   │   ├── balanced_entropy.py
+│   │   ├── class_balanced_loss.py
+│   │   ├── losses.py
+│   │   ├── optimizer_manager.py
+│   │   ├── sgd_nan.py
+│       └── sgd_nan_handler.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── dfp_net.py
 │   │   ├── metric.py
 │   │   ├── model_test.py
-│   │   ├── optimizer_manager.py
 │       └── segmentation_model.py
+│   ├── runner/
+│   │   ├── __init__.py
+│       └── trainer.py
 │   ├── utils/
 │   │   ├── __init__.py
+│   │   ├── adjust_lr.py
 │   │   ├── arg_parser.py
 │   │   ├── average_meter.py
-│   │   ├── generate_init_files.py
-│   │   ├── generate_requirements_txt.py
+│   │   ├── early_stopping.py
+│   │   ├── importmod.py
 │   │   ├── logger.py
-│   │   ├── save_ckpt.py
 │   │   ├── seed_utils.py
-│   │   ├── sgd_nan_handler.py
 │   │   ├── str_to_bool.py
 │       └── visualize_instance_segmentation.py
-    └── __init__.py
+│   ├── __init__.py
+│   ├── main.py
+    └── main_v2.py
 │   ├── README.md
 │   ├── __init__.py
 │   ├── directory_structure.md
-│   ├── experiment_note.ipynb
-│   ├── main.py
     └── requirements.txt
 ```
