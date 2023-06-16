@@ -9,14 +9,12 @@ def get_augmentation(data_type):
                 A.HorizontalFlip(),
                 A.VerticalFlip(),
                 A.MedianBlur(),
-                A.Normalize(),
                 ToTensorV2(),
             ]
         )
     else:
         return A.Compose(
             [
-                A.Normalize,
                 ToTensorV2()
             ]
         )

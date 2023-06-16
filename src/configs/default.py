@@ -32,10 +32,7 @@ MILE_STONE = "15,25,30"
 VALID_TERM = 5
 
 # data configuration parameter
-DATA_ROOT = "/mnt/a/dataset"
-IMAGE_DIR = os.path.join(DATA_ROOT, "image")
-JSON_PATH = os.path.join(DATA_ROOT, "merged.json")
+DATA_ROOT = "/mnt/a/cropped"
 
 # IMG_SIZE = (284, 208) # raw size(923* 676)
-IMG_SIZE = (128, 128)
-IMG_OFFSET = 10 # default offset
+IMAGE_RESIZE = (128, 128)

@@ -1,5 +1,4 @@
 import os
-import logging
 import argparse
 
 def parse_args(C):
@@ -7,11 +6,9 @@ def parse_args(C):
     parser = argparse.ArgumentParser(description="Floorplan Instance Segmentation")
 
     # Define data paths
-    parser.add_argument("--image-dir", default=C.IMAGE_DIR, type=str)  # Path to the image directory
-    parser.add_argument("--annotation-file", default=C.JSON_PATH, type=str)
+    parser.add_argument("--data-dir", default=C.DATA_ROOT, type=str)
     parser.add_argument("--log-dir", default=f"{C.ROOT}/logs/{C.DATE}/{C.TIME}", type=str)  # Log directory path
-    parser.add_argument("--image-size", default=C.IMG_SIZE)
-    parser.add_argument("--image-offset", default=C.IMG_OFFSET)
+    parser.add_argument("--image-resize", default=C.IMAGE_RESIZE)
 
     parser.add_argument("--gpus", default=C.DEVICE, type=str)  # GPU device(s) to use
     parser.add_argument("--epochs", default=C.EPOCH, type=int)  # Number of epochs

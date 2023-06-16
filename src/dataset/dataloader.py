@@ -2,7 +2,7 @@ import torch
 from torch.utils import data
 
 from .augmentations import get_augmentation
-from .datasets import FloorplanDataset
+from .datasets import FloorPlanDataset
 
 def collate_fn(batch):
     # 데이터 형식 유효성 검사
@@ -22,18 +22,16 @@ def collate_fn(batch):
     return (data, labels)
 
 
-
 def Dataloader(args):
-    dataset_train = FloorplanDataset(
-        args,
-        type = 'train',
-        transform=get_augmentation(data_type="train")
-    )
-    dataset_valid = FloorplanDataset(
-        args,
-        type = 'valid',
-        transform=get_augmentation(data_type='valid')
-    )
+    dataset = FloorPlanDataset(args, transform=get_augmentation(data_type="train"))
+    
+    # train_ratio = 0.8
+    # train_size = int(len(dataset) * train_ratio)
+    # valid_size = len(dataset) - train_size
+    
+    valid_size = 256
+    train_size = len(dataset) - valid_size
+    dataset_train, dataset_valid = data.random_split(dataset, [train_size, valid_size])
     
     train_loader = data.DataLoader(
         dataset_train, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, drop_last=True, collate_fn=collate_fn
