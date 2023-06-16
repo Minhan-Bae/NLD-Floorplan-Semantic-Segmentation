@@ -20,14 +20,13 @@ def visualize_instance_segmentation(images_list, masks_list, size=6, shape=(10, 
     """
     # Create a figure with a specified size.
     fig = plt.figure(figsize=(size, size))
-    # Create an ImageGrid with the specified shape and padding.
     grid = ImageGrid(fig, 111, nrows_ncols=shape, axes_pad=0.08)
 
     # Iterate through images and masks.
     for ax, image, mask in zip(grid, images_list, masks_list):
         # Normalize the image to the range [0, 1].
         image = (image - image.min()) / (image.max() - image.min())
-        
+        image = np.transpose(image, (1, 2, 0))
         # Overlay the mask on the image.
         overlay = np.where(mask > 0, mask, np.nan)
         
