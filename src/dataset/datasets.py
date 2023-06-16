@@ -34,25 +34,27 @@ class FloorPlanDataset(Dataset):
         imagePath, labelPath  = self.dataList[index]
 
 
-        image = Image.open(imagePath)
-        label = Image.open(labelPath)
+        image = Image.open(imagePath).convert('RGB')
+        label = Image.open(labelPath).convert('RGB')
+        
         image = F.resize(image, (self.imageResize[1], self.imageResize[0]))
         label = F.resize(label, (self.imageResize[1], self.imageResize[0]))
         
         image = np.array(image)
         label = np.array(label)
         
-        if self.transform:
-            transformed = self.transform(image=image, label=label)
-            image = transformed['image']
-            label = transformed['label']
-
+        
+        # if self.transform:
+        #     transformed = self.transform(image=image, mask=label)
+        #     image = transformed['image']
+        #     label = transformed['image']
+        
         image = torch.tensor(image, dtype=torch.float)
-        label = torch.tensor(label, dtype=torch.float)
-    
+        label = torch.tensor(label, dtype=torch.long)
+
+        # data normalize (-1 to 1)
         image = (image - image.min()/(image.max() - image.min()))
         label = (label - label.min()/(label.max() - label.min()))
-
         image = (2 * image) -1
         label = (2 * label) -1
                     
