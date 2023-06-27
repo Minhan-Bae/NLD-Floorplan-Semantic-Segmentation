@@ -2,6 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
+import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision.transforms import functional as F
@@ -9,17 +10,19 @@ from torchvision.transforms import functional as F
 
 class FloorPlanDataset(Dataset):
     def __init__(self, args, type='train', transform=None):
-        self.imageDirPath = os.path.join(args.data_dir, 'image')
-        self.labelDirPath = os.path.join(args.data_dir, 'label')
+        # self.imageDirPath = os.path.join(args.data_dir, 'image')
+        # self.labelDirPath = os.path.join(args.data_dir, 'label')
         
-        self.imageDir = sorted(os.listdir(self.imageDirPath))
-        self.labelDir = sorted(os.listdir(self.labelDirPath))
+        # self.imageDir = sorted(os.listdir(self.imageDirPath))
+        # self.labelDir = sorted(os.listdir(self.labelDirPath))
         
-        self.dataList = list()
-        for imagePath, labelPath in zip(self.imageDir, self.labelDir):
-            imagePath = os.path.join(self.imageDirPath, imagePath)
-            labelPath = os.path.join(self.labelDirPath, labelPath)
-            self.dataList.append((imagePath, labelPath))
+        # self.dataList = list()
+        # for imagePath, labelPath in zip(self.imageDir, self.labelDir):
+        #     imagePath = os.path.join(self.imageDirPath, imagePath)
+        #     labelPath = os.path.join(self.labelDirPath, labelPath)
+        #     self.dataList.append((imagePath, labelPath))
+        with open(args.csv_path) as f:
+            self.dataList = [line.strip().split(',') for line in f.readlines()]
 
         self.imageResize = args.image_resize # e.g. (128,128)
         self.type = type
@@ -31,7 +34,7 @@ class FloorPlanDataset(Dataset):
 
 
     def __getitem__(self, index):       
-        imagePath, labelPath  = self.dataList[index]
+        _, imagePath, labelPath  = self.dataList[index]
 
 
         image = Image.open(imagePath)
