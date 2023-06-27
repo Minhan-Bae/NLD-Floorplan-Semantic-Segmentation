@@ -2,14 +2,14 @@ import time
 from tqdm import tqdm
 
 import torch
-from .average_meter import AverageMeter
+from utils.average_meter import AverageMeter
 
 import sys
 sys.path.append('..')
-from models.loss import balanced_entropy as BE
-from models.loss import losses as L
+from loss import balanced_entropy as BE
 from pytorch_toolbelt import losses as PL
-def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
+from utils.visualize_instance_segmentation import visualize_instance_segmentation
+def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, device, savePath):
     """Network training, loss updates, and backward calculation"""
 
     # AverageMeter for statistics
@@ -17,29 +17,25 @@ def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
     data_time = AverageMeter()
     train_loss = 0.0
 
-    model.train()
-
     # criterion = L.FocalLoss()
-    # criterion = PL.balanced_binary_cross_entropy_with_logits()
     
     end = time.time()
-    pbar = tqdm(enumerate(train_loader), total=len(train_loader))
-    
+    pbar = tqdm(enumerate(train_loader), total=len(train_loader))        
     for idx, (features, labels) in pbar:
-        features = features.cuda()
-        labels = labels.cuda()
-
-        predicts = model(features).cuda()
-        # predicts = predicts
+        optimizer.zero_grad()
+        model.train()
+        model = model.to(device)
         
-        # loss = criterion(predicts, labels)
+        features = features.to(device)
+        labels = labels.to(device)
+
+        predicts = model(features).to(device)
+
         loss = PL.balanced_binary_cross_entropy_with_logits(predicts, labels)
+        
         data_time.update(time.time() - end)
         loss.backward()
         optimizer.step()
-        # scaler.scale(loss).backward()
-        # scaler.step(optimizer)
-        # scaler.update()
 
         optimizer.zero_grad()
         flag, _ = optimizer.step_handleNan()
@@ -52,8 +48,6 @@ def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
         train_loss += loss.item()
         batch_time.update(time.time() - end)
         end = time.time()
-
-    
     msg = (
         "Epoch: {}\t".format(str(epoch).zfill(len(str(args.epochs))))
         + "LR: {:.8f}\t".format(lr)
@@ -61,9 +55,8 @@ def train_one_epoch(args, train_loader, model, optimizer, epoch, lr, scaler):
         + "Loss: {:.8f}\t".format(train_loss / len(train_loader))
     )
     return msg
-    # logging.info(msg)
     
-def valid_one_epoch(valid_loader, model, save=None):
+def valid_one_epoch(valid_loader, model, device, save=None):
     cum_loss = 0.0
     cum_nme = 0.0
 
@@ -71,25 +64,25 @@ def valid_one_epoch(valid_loader, model, save=None):
 
     with torch.no_grad():
         for features, labels in valid_loader:
-            features = features.cuda()
-            labels = labels.cuda()
+            features = features.to(device)
+            labels = labels.to(device)
 
-            outputs = model(features).cuda()
+            predicts = model(features).to(device)
 
-            loss = BE.balanced_entropy(outputs, labels)
-            nme = NME(outputs, labels)
+            loss = PL.balanced_binary_cross_entropy_with_logits(predicts, labels)
+            # nme = NME(outputs, labels)
 
-            cum_nme += nme.item()
+            # cum_nme += nme.item()
             cum_loss += loss.item()
             break
     if save:
-        visualize_batch(
+        visualize_instance_segmentation(
             features[:16].cpu(),
-            outputs[:16].cpu(),
+            predicts[:16].cpu(),
             labels[:16].cpu(),
             shape=(4, 4),
             size=16,
             save=save,
         )
 
-    return cum_loss / len(valid_loader), cum_nme / len(valid_loader)
+    return cum_loss / len(valid_loader)
