@@ -29,8 +29,13 @@ def Dataloader(args):
     # train_size = int(len(dataset) * train_ratio)
     # valid_size = len(dataset) - train_size
     
-    valid_size = 256
-    train_size = len(dataset) - valid_size
+    # valid_size = 256
+    # train_size = len(dataset) - valid_size
+    
+    # just for testing
+    train_size = 256
+    valid_size = len(dataset) - train_size
+    
     dataset_train, dataset_valid = data.random_split(dataset, [train_size, valid_size])
     
     
