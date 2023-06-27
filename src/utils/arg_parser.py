@@ -6,6 +6,7 @@ def parse_args(C):
     parser = argparse.ArgumentParser(description="Floorplan Instance Segmentation")
 
     # Define data paths
+    parser.add_argument("--csv-path", default=C.CSV_PATH, type=str)
     parser.add_argument("--data-dir", default=C.DATA_ROOT, type=str)
     parser.add_argument("--log-dir", default=f"{C.ROOT}/logs/{C.DATE}/{C.TIME}", type=str)  # Log directory path
     parser.add_argument("--image-resize", default=C.IMAGE_RESIZE)
