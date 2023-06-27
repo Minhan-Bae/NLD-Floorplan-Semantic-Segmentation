@@ -37,8 +37,9 @@ class FloorPlanDataset(Dataset):
         _, imagePath, labelPath  = self.dataList[index]
 
 
-        image = Image.open(imagePath)
-        label = Image.open(labelPath)
+        image = Image.open(imagePath).convert('RGB')
+        label = Image.open(labelPath).convert('RGB')
+
         image = F.resize(image, (self.imageResize[1], self.imageResize[0]))
         label = F.resize(label, (self.imageResize[1], self.imageResize[0]))
         

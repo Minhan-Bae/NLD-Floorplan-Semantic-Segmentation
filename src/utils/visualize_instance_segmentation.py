@@ -1,8 +1,7 @@
 # This script provides a function to visualize a batch of images with corresponding instance segmentation masks.
 # It uses matplotlib to display the images in a grid and to overlay the instance masks.
 # The function is useful for analyzing the performance of instance segmentation models.
-
-import numpy as np
+import cv2
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 
@@ -26,13 +25,18 @@ def visualize_instance_segmentation(images_list, masks_list, size=6, shape=(10, 
     for ax, image, mask in zip(grid, images_list, masks_list):
         # Normalize the image to the range [0, 1].
         image = (image - image.min()) / (image.max() - image.min())
-        image = np.transpose(image, (1, 2, 0))
+        mask = (mask - mask.min()) / (mask.max() - mask.min())
+        # image = np.transpose(image, (1, 2, 0))
         # Overlay the mask on the image.
-        overlay = np.where(mask > 0, mask, np.nan)
+        # overlay = np.where(mask > 0, mask, np.nan)
         
         # Display the image and overlay the mask.
+        
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
+        
         ax.imshow(image, cmap='gray')
-        ax.imshow(overlay, cmap='jet', alpha=0.5)
+        ax.imshow(mask, cmap='jet', alpha=0.5)
         ax.axis('off')
 
     # Display the title if specified.
