@@ -54,8 +54,10 @@ class FloorPlanDataset(Dataset):
         image = torch.tensor(image, dtype=torch.float)
         label = torch.tensor(label, dtype=torch.float)
     
-        image = (image - image.min()/(image.max() - image.min()))
-        label = (label - label.min()/(label.max() - label.min()))
+        # 해당 부분이 Nan값을 유발한다. 왜냐. image.max() - image.min()이 0이라서 Nan값 발생
+        # 즉. class가 없는 흑색 마스크일 경우.
+        image = (image - image.min())/255
+        label = (label - label.min())/255
 
         image = (2 * image) -1
         label = (2 * label) -1
