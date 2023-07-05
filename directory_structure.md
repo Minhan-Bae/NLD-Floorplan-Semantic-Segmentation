@@ -1,8 +1,12 @@
+├── .git/
+├── .github/
 ├── logs/
 ├── src/
 │   ├── configs/
 │   │   ├── __init__.py
 │       └── default.py
+│   ├── data/
+│       └── dataset.csv
 │   ├── dataset/
 │   │   ├── __init__.py
 │   │   ├── augmentations.py
@@ -38,8 +42,10 @@
 │   │   ├── str_to_bool.py
 │       └── visualize_instance_segmentation.py
 │   ├── __init__.py
+│   ├── baseline.ipynb
 │   ├── main.py
-    └── main_v2.py
+│   ├── main_v2.py
+    └── visualization_test.ipynb
 │   ├── README.md
 │   ├── __init__.py
 │   ├── directory_structure.md
