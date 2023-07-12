@@ -76,9 +76,9 @@ def set_config():
     CFG['experiment_number'] = "23Jun30"
     CFG["seed"] = 23
 
-    CFG["data_root"] = "/root/workspace/nld_floorplan_seg/src/data/dataset.csv"
-    CFG["resume"] = "/root/workspace/nld_floorplan_seg/logs/2023-07-07/14-27/checkpoint.pth"
-    CFG["lr"] = 1e-4
+    CFG["data_root"] = "/mnt/a/workspace/repository/nld_floorplan_seg/src/data/dataset.csv"
+    CFG["resume"] = None
+    CFG["lr"] = 1e-6
     CFG["weight_decay"] = 1e-7
 
     CFG["batch_size"] = 256
@@ -89,10 +89,10 @@ def set_config():
     CFG["patience"] = 9999
 
     CFG["n_class"] = 8
-    CFG["resize_factor"] = (128,128)
+    CFG["resize_factor"] = (256,256)
     CFG["pad_value"] = 20
 
-    CFG["ROOT"] = "/root/workspace/nld_floorplan_seg"
+    CFG["ROOT"] = "/mnt/a/workspace/repository/nld_floorplan_seg"
     CFG["DATE"] = datetime.now().strftime("%Y-%m-%d")
     CFG["TIME"] = datetime.now().strftime("%H-%M")
     return CFG
@@ -254,23 +254,28 @@ def compute_miou(predictions, targets):
     num_classes = predictions.size(1)
     miou = 0.0
 
-    for i in range(batch_size):
-        pred = predictions[i].argmax(dim=0)  # 예측된 클래스 인덱스
-        target = targets[i].argmax(dim=0)  # 실제 클래스 인덱스
+    for c in range(num_classes):
+        intersection = 0.0
+        union = 0.0
 
-        intersection = torch.logical_and(pred, target).sum().float()
-        union = torch.logical_or(pred, target).sum().float()
+        for i in range(batch_size):
+            pred = (predictions[i, c] > 0.5).int()  # 예측된 클래스 c의 마스크
+            target = (targets[i, c] > 0.5).int()  # 실제 클래스 c의 마스크
+
+            intersection += (pred & target).sum().item()
+            union += (pred | target).sum().item()
 
         if union == 0:  # union이 0인 경우 처리
             iou = 0.0
         else:
-            iou = intersection / (union + 1e-8) # 1e-8은 부동소수점 형태로 Nan0
+            iou = intersection / union
 
         miou += iou
 
-    miou /= num_classes  # 클래스 수로 나누어
+    miou /= num_classes
 
-    return miou.item()
+    return miou
+
 
 
 def encode_with_cutoff(arr, value, cutoff_value):
@@ -441,7 +446,10 @@ if __name__=="__main__":
 
         else:
             earlyStopCnt += 1
-            logging.exception(f"Early stopping is now {earlyStopCnt}")
+            logging.info(f"Early stopping is now {earlyStopCnt}")
+            logging.info(f'Validation loss {val_loss:.6f}).')
+            logging.info(f'Validation mIoU {val_miou:.6f}.')
+            
             if earlyStopCnt > CFG["patience"]:
                 logging.exception("Early stopping is activated")
                 break
