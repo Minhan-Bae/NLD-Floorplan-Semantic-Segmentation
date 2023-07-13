@@ -73,28 +73,30 @@ print("Device count: ", torch.cuda.device_count())
 def set_config():
     CFG = {}
 
-    CFG['experiment_number'] = "23Jun30"
+    CFG['experiment_number'] = ""
     CFG["seed"] = 23
 
-    CFG["data_root"] = "/mnt/a/workspace/repository/nld_floorplan_seg/src/data/dataset.csv"
+    CFG["data_root"] = "/mnt/a/workspace/repository/nld_floorplan_seg/src/dataset/dataset.csv"
     CFG["resume"] = None
     CFG["lr"] = 1e-6
     CFG["weight_decay"] = 1e-7
 
     CFG["batch_size"] = 256
-    CFG["valid_term"] = 1
+    CFG["valid_term"] = 5
     CFG["n_epoch"] = 50
     CFG["n_Folds"] = 5
     CFG["n_iter"] = 3
     CFG["patience"] = 9999
 
-    CFG["n_class"] = 8
+    CFG["n_class"] = 7
     CFG["resize_factor"] = (256,256)
     CFG["pad_value"] = 20
 
     CFG["ROOT"] = "/mnt/a/workspace/repository/nld_floorplan_seg"
     CFG["DATE"] = datetime.now().strftime("%Y-%m-%d")
     CFG["TIME"] = datetime.now().strftime("%H-%M")
+    
+    CFG['experiment_number'] = f'{CFG["DATE"]}-{CFG["TIME"]}'
     return CFG
 
 # logging
@@ -146,7 +148,7 @@ class FloorPlanDataset(Dataset):
     def _generate_label(self, value):
         label = np.zeros((self.num_classes, self.imageResize[0], self.imageResize[1]), dtype=np.float32)
         for i in range(self.num_classes): # background, others 삭제
-            label[i] = (value == i) * 255
+            label[i] = (value == i+1) * 255
         return label
 
 
@@ -157,7 +159,7 @@ class FloorPlanDataset(Dataset):
     def __getitem__(self, index):
         _, imagePath, labelPath = self.dataList[index]
 
-        image = Image.open(imagePath).convert('L')
+        image = Image.open(imagePath).convert('RGB')
         label = Image.open(labelPath).convert('L')
         image = TF.resize(image, (self.imageResize[1], self.imageResize[0]))
         label = TF.resize(label, (self.imageResize[1], self.imageResize[0]), interpolation=Image.NEAREST)
@@ -170,8 +172,8 @@ class FloorPlanDataset(Dataset):
             image = transformed['image']
             label = transformed['mask']
 
-        image = torch.tensor(image, dtype=torch.float)# .permute(2, 0, 1)
-        image = image.unsqueeze(0)
+        image = torch.tensor(image, dtype=torch.float).permute(2, 0, 1)
+        # image = image.unsqueeze(0)
         label = torch.tensor(self._generate_label(label), dtype=torch.float)
             
         image = (image - image.min()) / 255
@@ -187,8 +189,18 @@ def get_augmentation(data_type):
     if data_type == 'train':
         return A.Compose(
             [
+                A.OneOf(
+                    [
+                        A.RandomBrightness(),
+                        A.RandomGamma(),
+                        A.ColorJitter(),
+                        A.ToSepia()                                            
+                    ]
+                ),
                 A.HorizontalFlip(),
                 A.VerticalFlip(),
+
+                
             ]
         )
 
@@ -363,7 +375,7 @@ if __name__=="__main__":
     with open(CFG['data_root']) as f:
         CFG['dataList'] = [line.strip().split(',') for line in f.readlines()]
 
-    save_path = os.path.join("/root/workspace/nld_floorplan_seg/logs",CFG["DATE"],CFG["TIME"] )
+    save_path = os.path.join(CFG["ROOT"],"logs",CFG["DATE"],CFG["TIME"])
     save_image_path = os.path.join(save_path, 'image_logs')
     os.makedirs(save_image_path, exist_ok=True)
     #logging part
@@ -387,7 +399,7 @@ if __name__=="__main__":
     model = smp.Unet(
     encoder_name='resnet34',
     encoder_weights='imagenet',
-    in_channels=1,
+    in_channels=3,
     classes=CFG["n_class"]
     )
     model = nn.DataParallel(model, device_ids=[0, 1])
@@ -415,7 +427,7 @@ if __name__=="__main__":
         validLoader, model, device,
         save=os.path.join(
             save_image_path,
-            f'epoch({str(0).zfill(len(str(CFG["n_epoch"])))}).jpg',)        
+            f'epoch({str(0).zfill(len(str(CFG["n_epoch"])))}).png',)        
         )
     logging.info(f"init valid loss & mIoU: {val_loss_min:.4f}, {val_miou_min:.4f}")
 
@@ -430,7 +442,7 @@ if __name__=="__main__":
             validLoader, model, device,
             save=os.path.join(
             save_image_path,
-            f'epoch({str(epoch+1).zfill(len(str(CFG["n_epoch"])))}).jpg')        
+            f'epoch({str(epoch+1).zfill(len(str(CFG["n_epoch"])))}).png')        
         )
         s = f"init loss: {val_loss}    init mIoU: {val_miou}"
         logging.info(s)
@@ -459,7 +471,7 @@ if __name__=="__main__":
         # GIF 파일의 이름과 프레임 속도를 설정합니다.
         gif_name = os.path.join(dir,"output.gif")
 
-        png_files = sorted(glob.glob(os.path.join(dir, "image_logs", "*.jpg")))
+        png_files = sorted(glob.glob(os.path.join(dir, "image_logs", "*.png")))
         # 첫 번째 PNG 파일을 열어 GIF 파일의 기본 설정을 합니다.
         with Image.open(png_files[0]) as first_image:
             # 이미지 크기 조정
