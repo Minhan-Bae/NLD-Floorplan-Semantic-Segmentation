@@ -79,7 +79,7 @@ def set_config():
     CFG["data_root"] = "/mnt/a/workspace/repository/nld_floorplan_seg/src/dataset/dataset.csv"
     CFG["resume"] = None
     CFG["lr"] = 1e-6
-    CFG["weight_decay"] = 1e-7
+    CFG["weight_decay"] = 1e-4
 
     CFG["batch_size"] = 256
     CFG["valid_term"] = 5
@@ -159,7 +159,9 @@ class FloorPlanDataset(Dataset):
     def __getitem__(self, index):
         _, imagePath, labelPath = self.dataList[index]
 
-        image = Image.open(imagePath).convert('RGB')
+        image = Image.open(imagePath).convert('L')
+        image.point(lambda x: 0 if x < 110 else 255, '1')
+        
         label = Image.open(labelPath).convert('L')
         image = TF.resize(image, (self.imageResize[1], self.imageResize[0]))
         label = TF.resize(label, (self.imageResize[1], self.imageResize[0]), interpolation=Image.NEAREST)
@@ -172,8 +174,8 @@ class FloorPlanDataset(Dataset):
             image = transformed['image']
             label = transformed['mask']
 
-        image = torch.tensor(image, dtype=torch.float).permute(2, 0, 1)
-        # image = image.unsqueeze(0)
+        image = torch.tensor(image, dtype=torch.float)# .permute(2, 0, 1)
+        image = image.unsqueeze(0) # if 1ch
         label = torch.tensor(self._generate_label(label), dtype=torch.float)
             
         image = (image - image.min()) / 255
@@ -193,8 +195,8 @@ def get_augmentation(data_type):
                     [
                         A.RandomBrightness(),
                         A.RandomGamma(),
-                        A.ColorJitter(),
-                        A.ToSepia()                                            
+                        # A.ColorJitter(),
+                        # A.ToSepia()                                            
                     ]
                 ),
                 A.HorizontalFlip(),
@@ -399,7 +401,7 @@ if __name__=="__main__":
     model = smp.Unet(
     encoder_name='resnet34',
     encoder_weights='imagenet',
-    in_channels=3,
+    in_channels=1,
     classes=CFG["n_class"]
     )
     model = nn.DataParallel(model, device_ids=[0, 1])
