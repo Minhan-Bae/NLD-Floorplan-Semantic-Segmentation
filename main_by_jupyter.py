@@ -83,10 +83,10 @@ def set_config():
 
     CFG["batch_size"] = 256
     CFG["valid_term"] = 5
-    CFG["n_epoch"] = 50
+    CFG["n_epoch"] = 100
     CFG["n_Folds"] = 5
     CFG["n_iter"] = 3
-    CFG["patience"] = 9999
+    CFG["patience"] = 5
 
     CFG["n_class"] = 7
     CFG["resize_factor"] = (256,256)
