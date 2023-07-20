@@ -1,38 +1,47 @@
-# import modules and packages
 import os
 import torch
 from datetime import datetime
 
-# logging
-ROOT = "/root/workspace/nld_floorplan_seg"
-DATE = datetime.now().strftime("%Y-%m-%d")
-TIME = datetime.now().strftime("%H-%M")
 
-# environment parameter
-DEVICE = ','.join([str(i) for i in range(torch.cuda.device_count())])
-BATCH_SIZE = 128 # number of gpu * 64(T4*2)
-WORKERS = 4 # * len(DEVICE) # number of gpu * 4
-SEED = 2023
-EPOCH = 100
+SEED = 00
+EPOCHS = 100
 
-# model parameter
-MODEL = ""
-LOSS = "BELOSS"
-OPTIM = "AdamW"
+VALID_TERM = 5
+EARLY_STOP_CNT = 5
+MILE_STONE = "15,25,30"
 
-# hyperparameter
-LR = 1e-4
+LR = 1e-6
 MOMENTUM = 0.9
 WEIGHT_DECAY = 6e-4
 WARM_UP = 25
 
-# validation control parameter
-EARLY_STOP_CNT = 50
-MILE_STONE = "15,25,30"
-VALID_TERM = 5
+RESIZE_FACTOR = (256, 256)
 
-# data configuration parameter
-DATA_ROOT = "/mnt/a/cropped"
-CSV_PATH = "/root/workspace/nld_floorplan_seg/src/data/dataset.csv"
-# IMG_SIZE = (284, 208) # raw size(923* 676)
-IMAGE_RESIZE = (128, 128)
+PADDING = 20
+
+# logging
+ROOT = "/mnt/a/workspace/repository/nld-floorplan-segmentation"
+DATE = datetime.now().strftime("%Y-%m-%d")
+TIME = datetime.now().strftime("%H-%M")
+EXP_NUM = f"{DATE}-{TIME}"
+
+CSV_PATH = os.path.join(ROOT, "src/datasets/dataset.csv")
+DEVICE = [str(n) for n in range(torch.cuda.device_count())]
+BATCH_SIZE = {
+    "TRAIN": len(DEVICE) * 64,
+    "VALID": 64
+}
+WORKERS = len(DEVICE) * 4
+
+N_CLASSES = 7
+MODEL = {
+    "ARCHITECTURE": "UNetPlusPlus",
+    "ENCODER": "resnet34",
+    "WEIGHTS": "imagenet",
+    "CHANNEL": 1, 
+    "RESUME": None
+}
+LOSS = "BalancedBCEWithLogitsLoss"
+OPTIM = "MADGRAD"
+
+RESUME = None

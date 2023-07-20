@@ -1,78 +1,108 @@
-#!/usr/bin/env python3
-# -*- coding:utf-8 -*-
+# Import modules and packages
+from importmod import *
+# Enable cuDNN benchmarking for improved performance (use with caution)
+torch.backends.cudnn.benchmark = True
 
-import os
-import gc
-import warnings
-import time
-import logging
-import torch
-import torch.backends.cudnn as cudnn
-import torch.nn as nn
-import torch.optim as optim
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+torch.cuda.empty_cache()
 
-import numpy as np
-from tqdm import tqdm
-from torch.cuda.amp import autocast, GradScaler
-from models.model_test import DeepLabV3Plus
-from models import sgd_nan
-from configs import default as C
-from dataset.dataloader import Dataloader
-from utils import arg_parser, seed_utils, logger
-from utils import trainer as T
-from utils.early_stopping import EarlyStopping
-
-from models.loss import balanced_entropy, class_balanced_loss, losses
-from pytorch_toolbelt import losses as L
-gc.collect()
 warnings.filterwarnings("ignore")
 
-torch.backends.cudnn.enabled = False
-# cudnn.benchmark = True
+# 확인 부분
+print("Pytorch version: {}".format(torch.__version__))
+print("GPU: {}".format(torch.cuda.is_available()))
 
-def main():
-    # 초기 설정
+print("Device name: ", torch.cuda.get_device_name(0))
+print("Device count: ", torch.cuda.device_count())
+
+torch.cuda.empty_cache()
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+def main(configs, device=device):
+    # load arguments
+    args = arg_parser.parse_args(configs)
+    seed_utils.seed_everything(args.seed)
     
-    # 인자 파싱
-    args = arg_parser.parse_args(C)
-
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpus
     
-    seed_utils.seed_everything(args.seed)
-    # 로거 설정
-    log = logger.get_logger(args.log_dir)
+    # init loggine
+    logger.get_logger(args.log_dir)
     for arg in vars(args):
-        s = arg + ": " + str(getattr(args, arg))
-        logging.info(s)
-
-    model = DeepLabV3Plus()
-    torch.cuda.set_device(args.devices_id[0])
-    model = nn.DataParallel(model, device_ids=args.devices_id).cuda()
-    optimizer = sgd_nan.SGD_NanHandler(
-        model.parameters(),
-        lr=args.base_lr,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay,
-        nesterov=True,
-    )
-
-    train_loader, valid_loader = Dataloader(args)
-
-    # EarlyStopping 설정
-    early_stopping = EarlyStopping(
-        patience=args.early_stop,
-        verbose=True,
-        checkpoint_path='./checkpoint.pt',
-        logger=log,
-    )
-
-    for epoch in range(1, args.epochs + 1):
-        scaler = GradScaler()
-        msg = T.train_one_epoch(args, train_loader, model, optimizer, epoch, C.LR, scaler)
+        s = f"{arg}: {getattr(args, arg)}"
+        logging.info(s) 
+    
+    
+    # model & optimizer
+    model = smp_models.SegmentationModel(args)
+    criterion = PL.BalancedBCEWithLogitsLoss()
+    optimizer = MADGRAD(params=model.parameters(), lr=args.base_lr, weight_decay=args.weight_decay)
+    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=args.epochs, T_mult=1)
+    
+    # dataset & dataloader
+    datasets = dataset.FloorPlanDataset(args, transform=augmentation.get_augmentation(data_type="train"))
+    trainLoader, validLoader = dataloader.FloorPlanDataloader(datasets, args)
+    
+    # init validate
+    val_loss_min, val_miou_min = evaluate.valid_one_epoch(args, 
+                                                          validLoader, 
+                                                          model,
+                                                          criterion,
+                                                          device,
+                                                          save=os.path.join(args.log_dir,
+                                                                            "image_logs",
+                                                                            f"epoch({str(0).zfill(len(str(args.epochs)))}).png",
+                                                                            )
+                                                          )
+    msg = f"init valid loss & mIoU: {val_loss_min:.4f}, {val_miou_min:.4f}"
+    logging.info(msg)
+    
+    # train & valid
+    earlyStopCnt = 0
+    for epoch in range(args.epochs):
+        ## train
+        msg = evaluate.train_one_epoch(args, epoch, trainLoader, model, criterion, optimizer, scheduler, device)
         logging.info(msg)
 
+        if (epoch & args.valid_term == 0) or (epoch == args.epochs):
+            val_loss, val_miou = evaluate.valid_one_epoch(args, 
+                                                          validLoader, 
+                                                          model,
+                                                          criterion,
+                                                          device,
+                                                          save=os.path.join(args.log_dir,
+                                                                            "image_logs",
+                                                                            f"epoch({str(epoch+1).zfill(len(str(args.epochs)))}).png",
+                                                                            )
+                                                          )
+            s = f"best loss: {val_loss}    best mIoU: {val_miou}"
+            logging.info(s)      
 
-if __name__ == '__main__':
-    main()
+            transform_gif.transform_gif(args.log_dir)
+            
+            if val_miou_min < val_miou and val_loss_min > val_loss: #
+                earlyStopCnt = 0
+                torch.save(model.state_dict(), os.path.join(args.log_dir, "checkpoint.pth"))
+                logging.info(f'Validation loss updates ({val_loss_min:.6f} --> {val_loss:.6f}).')
+                logging.info(f'Validation mIoU updates ({val_miou_min:.4f} --> {val_miou:.6f}.  Saving model ...')
+                
+                val_miou_min = val_miou
+                val_loss_min = val_loss
+
+            else:
+                earlyStopCnt += 1
+                logging.info(f"Early stopping is now {earlyStopCnt}")
+                logging.info(f'Validation loss {val_loss:.6f}).')
+                logging.info(f'Validation mIoU {val_miou:.6f}.')
+                
+                if earlyStopCnt > args.early_stop:
+                    logging.exception("Early stopping is activated")
+                    break
+            
+            
+                  
+if __name__=="__main__":
+    main(default)
+    
+    
+    
+    logging.info("⭐⭐ GPU is free. ⭐⭐")
