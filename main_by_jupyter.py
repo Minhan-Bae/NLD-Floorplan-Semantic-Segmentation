@@ -78,10 +78,10 @@ def set_config():
 
     CFG["data_root"] = "/mnt/a/workspace/repository/nld_floorplan_seg/src/dataset/dataset.csv"
     CFG["resume"] = None
-    CFG["lr"] = 1e-6
+    CFG["lr"] = 1e-7
     CFG["weight_decay"] = 1e-4
 
-    CFG["batch_size"] = 256
+    CFG["batch_size"] = 128
     CFG["valid_term"] = 5
     CFG["n_epoch"] = 100
     CFG["n_Folds"] = 5
@@ -195,6 +195,8 @@ def get_augmentation(data_type):
                     [
                         A.RandomBrightness(),
                         A.RandomGamma(),
+                        A.GaussianBlur(),
+                        A.MotionBlur(),
                         # A.ColorJitter(),
                         # A.ToSepia()                                            
                     ]
@@ -398,7 +400,7 @@ if __name__=="__main__":
 
     seed_everything(CFG["seed"])
 
-    model = smp.Unet(
+    model = smp.UnetPlusPlus(
     encoder_name='resnet34',
     encoder_weights='imagenet',
     in_channels=1,

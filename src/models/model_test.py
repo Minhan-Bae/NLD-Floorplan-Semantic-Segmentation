@@ -4,7 +4,7 @@ import segmentation_models_pytorch as smp
 
 # DeepLabV3
 class DeepLabV3(nn.Module):
-	def __init__(self, num_classes= 7):
+	def __init__(self, in_channel,num_classes= 7):
 		super(DeepLabV3, self).__init__()
 		self.model = smp.DeepLabV3(
 				encoder_name='efficientnet-b3',
