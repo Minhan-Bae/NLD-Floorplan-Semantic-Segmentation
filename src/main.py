@@ -102,7 +102,4 @@ def main(configs, device=device):
                   
 if __name__=="__main__":
     main(default)
-    
-    
-    
     logging.info("⭐⭐ GPU is free. ⭐⭐")

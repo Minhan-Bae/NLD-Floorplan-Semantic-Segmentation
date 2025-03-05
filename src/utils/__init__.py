@@ -1,4 +1,5 @@
 # This is an automatically generated __init__.py file
+from . import importmod
 from . import adjust_lr
 from . import arg_parser
 from . import average_meter
