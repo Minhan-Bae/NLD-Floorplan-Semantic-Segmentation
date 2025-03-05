@@ -2,7 +2,7 @@
 
 ## **Project Overview:**
 
-![Uploading output.gif…]()
+![Image](https://github.com/user-attachments/assets/33c233ff-84f8-4aaf-afe2-fb0f3b3fe9b3)
 
 A deep learning-based tool for image segmentation of Naver Real Estate floor plan images. This repository implements semantic segmentation models to accurately identify and segment structural elements such as rooms, walls, doors, and windows from floor plan images. This can be used for automated floor plan analysis, 3D model generation, and real estate data processing.
 
